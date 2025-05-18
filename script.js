@@ -39,7 +39,6 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     const img = new Image();
 
     img.onload = () => {
-      // Set canvas size
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
 
@@ -51,27 +50,34 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       ctx.fillStyle = 'red';
       ctx.font = '20px Arial';
 
-      // Draw width line (cheek to cheek)
+      // Draw width (cheek-to-cheek)
       ctx.beginPath();
       ctx.moveTo(...left_cheek);
       ctx.lineTo(...right_cheek);
       ctx.stroke();
 
-      const width = Math.hypot(right_cheek[0] - left_cheek[0], right_cheek[1] - left_cheek[1]);
-      const widthMid = [(left_cheek[0] + right_cheek[0]) / 2, (left_cheek[1] + right_cheek[1]) / 2];
-      ctx.fillText(`${width.toFixed(1)} px`, widthMid[0] + 10, widthMid[1] - 10);
+      const width = Math.hypot(
+        right_cheek[0] - left_cheek[0],
+        right_cheek[1] - left_cheek[1]
+      );
+      const midWidthX = (left_cheek[0] + right_cheek[0]) / 2;
+      const midWidthY = (left_cheek[1] + right_cheek[1]) / 2;
+      ctx.fillText(`${width.toFixed(1)} px`, midWidthX + 10, midWidthY - 10);
 
-      // Draw height line (eyebrow to upper lip)
+      // Draw height (eyebrow to lip)
       ctx.beginPath();
       ctx.moveTo(...middle_eyebrow);
       ctx.lineTo(...upper_lip);
       ctx.stroke();
 
-      const height = Math.hypot(middle_eyebrow[0] - upper_lip[0], middle_eyebrow[1] - upper_lip[1]);
-      const heightMid = [(middle_eyebrow[0] + upper_lip[0]) / 2, (middle_eyebrow[1] + upper_lip[1]) / 2];
-      ctx.fillText(`${height.toFixed(1)} px`, heightMid[0] + 10, heightMid[1] - 10);
+      const height = Math.hypot(
+        middle_eyebrow[0] - upper_lip[0],
+        middle_eyebrow[1] - upper_lip[1]
+      );
+      const midHeightX = (middle_eyebrow[0] + upper_lip[0]) / 2;
+      const midHeightY = (middle_eyebrow[1] + upper_lip[1]) / 2;
+      ctx.fillText(`${height.toFixed(1)} px`, midHeightX + 10, midHeightY - 10);
 
-      // Update result (below image)
       resultDiv.innerHTML = `
         <strong>Facial Width-to-Height Ratio (fWHR):</strong>
         ${fWHR}
