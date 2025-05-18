@@ -32,7 +32,9 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
     const data = await res.json();
 
-    // Extract landmarks for easy access
+    console.log('Landmarks received:', data.landmarks);
+
+    // Extract landmarks safely
     const {
       left_cheek,
       right_cheek,
@@ -41,7 +43,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       nasion,
       chin_bottom,
       hairline
-    } = data.landmarks;
+    } = data.landmarks || {};
 
     const imageURL = URL.createObjectURL(file);
     const img = new Image();
@@ -64,6 +66,10 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
       // Helper function to draw lines with measurement labels
       function drawLineWithLabel(start, end) {
+        if (!start || !end || start.length < 2 || end.length < 2) {
+          console.warn('Invalid points for drawing line:', start, end);
+          return;
+        }
         ctx.beginPath();
         ctx.moveTo(...start);
         ctx.lineTo(...end);
@@ -89,11 +95,11 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         ctx.fillText(label, midX, midY);
       }
 
-      // Draw all measurement lines:
-      drawLineWithLabel(left_cheek, right_cheek);          // bizygomatic width
-      drawLineWithLabel(middle_eyebrow, upper_lip);        // eyebrow to upper lip
-      drawLineWithLabel(nasion, chin_bottom);              // lower face height
-      drawLineWithLabel(hairline, chin_bottom);            // full face height
+      // Draw all measurement lines if valid:
+      if (left_cheek && right_cheek) drawLineWithLabel(left_cheek, right_cheek);
+      if (middle_eyebrow && upper_lip) drawLineWithLabel(middle_eyebrow, upper_lip);
+      if (nasion && chin_bottom) drawLineWithLabel(nasion, chin_bottom);
+      if (hairline && chin_bottom) drawLineWithLabel(hairline, chin_bottom);
 
       // Show results with ideal values in brackets and different color
       resultDiv.innerHTML = `
