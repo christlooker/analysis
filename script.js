@@ -35,15 +35,11 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     const { left_cheek, right_cheek, upper_lip, middle_eyebrow } = data.landmarks;
     const fWHR = data.fWHR;
 
-    resultDiv.innerHTML = `
-      <strong>Facial Width-to-Height Ratio (fWHR):</strong> ${fWHR} <br/>
-      <strong>Ideal:</strong> ${data.ideal_fWHR}
-    `;
-
     const imageURL = URL.createObjectURL(file);
     const img = new Image();
 
     img.onload = () => {
+      // Set canvas size
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
 
@@ -52,6 +48,8 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
       ctx.strokeStyle = 'red';
       ctx.lineWidth = 3;
+      ctx.fillStyle = 'red';
+      ctx.font = '20px Arial';
 
       // Draw width line (cheek to cheek)
       ctx.beginPath();
@@ -59,11 +57,26 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       ctx.lineTo(...right_cheek);
       ctx.stroke();
 
-      // Draw height line (middle eyebrow to upper lip)
+      const width = Math.hypot(right_cheek[0] - left_cheek[0], right_cheek[1] - left_cheek[1]);
+      const widthMid = [(left_cheek[0] + right_cheek[0]) / 2, (left_cheek[1] + right_cheek[1]) / 2];
+      ctx.fillText(`${width.toFixed(1)} px`, widthMid[0] + 10, widthMid[1] - 10);
+
+      // Draw height line (eyebrow to upper lip)
       ctx.beginPath();
       ctx.moveTo(...middle_eyebrow);
       ctx.lineTo(...upper_lip);
       ctx.stroke();
+
+      const height = Math.hypot(middle_eyebrow[0] - upper_lip[0], middle_eyebrow[1] - upper_lip[1]);
+      const heightMid = [(middle_eyebrow[0] + upper_lip[0]) / 2, (middle_eyebrow[1] + upper_lip[1]) / 2];
+      ctx.fillText(`${height.toFixed(1)} px`, heightMid[0] + 10, heightMid[1] - 10);
+
+      // Update result (below image)
+      resultDiv.innerHTML = `
+        <strong>Facial Width-to-Height Ratio (fWHR):</strong>
+        ${fWHR}
+        <span class="ideal">(ideal: ${data.ideal_fWHR})</span>
+      `;
 
       URL.revokeObjectURL(imageURL);
     };
