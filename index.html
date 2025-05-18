@@ -1,115 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Face Beauty Analyzer</title>
-  <link rel="icon" href="favicon.ico" />
-  <style>
-    body {
-      background-color: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 2rem;
-      margin: 0;
-    }
+<style>
+  body {
+    background-color: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 2rem;
+    margin: 0;
+  }
 
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1.5rem;
-    }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
 
-    form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
 
-    #imageInput {
-      display: none;
-    }
+  #imageInput {
+    display: none;
+  }
 
-    .custom-file-upload {
-      padding: 0.4rem 1rem;
-      font-size: 0.9rem;
-      border-radius: 6px;
-      background: #fff;
-      color: #000;
-      cursor: pointer;
-      border: none;
-      transition: all 0.3s ease;
-    }
+  .custom-file-upload {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+  }
 
-    .custom-file-upload.uploaded {
-      background-color: #28a745;
-      color: #fff;
-    }
+  .custom-file-upload.uploaded {
+    background-color: #28a745;
+    color: #fff;
+  }
 
-    button {
-      padding: 0.7rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      background: #fff;
-      color: #000;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+  button {
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
 
-    button:hover {
-      background: #ccc;
-    }
+  button:hover {
+    background: #ccc;
+  }
 
-    #result {
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
+  #result {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
 
-    #imageContainer {
-      position: relative;
-      display: inline-block;
-      margin-top: 1rem;
-      max-width: 90%;
-    }
+  #imageContainer {
+    position: relative;
+    display: inline-block;
+    margin-top: 1rem;
+    max-width: 90%;
+  }
 
-    #uploadedImage {
-      max-width: 100%;
-      display: block;
-    }
+  #uploadedImage {
+    max-width: 100%;
+    display: block;
+  }
 
-    #overlayCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Face Beauty Analyzer</h1>
-
-  <form id="uploadForm">
-    <label for="imageInput" id="fileLabel" class="custom-file-upload">Choose Image</label>
-    <input type="file" id="imageInput" accept="image/*" required />
-    <button type="submit">Analyze</button>
-  </form>
-
-  <div id="result"></div>
-
-  <div id="imageContainer">
-    <img id="uploadedImage" />
-    <canvas id="overlayCanvas"></canvas>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
+  #overlayCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+  }
+</style>
