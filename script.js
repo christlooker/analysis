@@ -45,12 +45,17 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
 
-      ctx.strokeStyle = 'red';
-      ctx.lineWidth = 3;
-      ctx.fillStyle = 'red';
-      ctx.font = '13px Arial';
+      // Set line style: red with some transparency (alpha 0.6)
+      ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
+      ctx.lineWidth = 2;
 
-      // Draw width (cheek-to-cheek)
+      // Set text style: bold, red, 13px, centered middle
+      ctx.fillStyle = 'red';
+      ctx.font = 'bold 13px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Draw width line (cheek to cheek)
       ctx.beginPath();
       ctx.moveTo(...left_cheek);
       ctx.lineTo(...right_cheek);
@@ -62,9 +67,9 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       );
       const midWidthX = (left_cheek[0] + right_cheek[0]) / 2;
       const midWidthY = (left_cheek[1] + right_cheek[1]) / 2;
-      ctx.fillText(`${width.toFixed(1)} px`, midWidthX + 10, midWidthY - 10);
+      ctx.fillText(`${width.toFixed(1)} px`, midWidthX, midWidthY);
 
-      // Draw height (eyebrow to lip)
+      // Draw height line (middle eyebrow to upper lip)
       ctx.beginPath();
       ctx.moveTo(...middle_eyebrow);
       ctx.lineTo(...upper_lip);
@@ -76,8 +81,9 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       );
       const midHeightX = (middle_eyebrow[0] + upper_lip[0]) / 2;
       const midHeightY = (middle_eyebrow[1] + upper_lip[1]) / 2;
-      ctx.fillText(`${height.toFixed(1)} px`, midHeightX + 10, midHeightY - 10);
+      ctx.fillText(`${height.toFixed(1)} px`, midHeightX, midHeightY);
 
+      // Show results below image
       resultDiv.innerHTML = `
         <strong>Facial Width-to-Height Ratio (fWHR):</strong>
         ${fWHR}
