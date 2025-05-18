@@ -1,4 +1,4 @@
-const imageInput = document.getElementById('imageInput');
+const imageInput = document.getElementById('fileInput');
 const fileLabel = document.getElementById('fileLabel');
 const uploadForm = document.getElementById('uploadForm');
 const resultDiv = document.getElementById('result');
@@ -6,11 +6,13 @@ const imgElement = document.getElementById('uploadedImage');
 const canvas = document.getElementById('overlayCanvas');
 const ctx = canvas.getContext('2d');
 
-// Handle upload button feedback
 imageInput.addEventListener('change', () => {
   if (imageInput.files.length > 0) {
     fileLabel.classList.add('uploaded');
     fileLabel.textContent = 'Uploaded';
+  } else {
+    fileLabel.classList.remove('uploaded');
+    fileLabel.textContent = 'Choose Image';
   }
 });
 
@@ -19,14 +21,14 @@ uploadForm.addEventListener('submit', async (e) => {
 
   const file = imageInput.files[0];
   if (!file) {
-    resultDiv.innerHTML = 'Please choose an image.';
+    resultDiv.textContent = 'Please choose an image before analyzing.';
     return;
   }
 
-  // Reset result and UI
+  // Reset UI
   fileLabel.classList.remove('uploaded');
   fileLabel.textContent = 'Choose Image';
-  resultDiv.innerHTML = 'Analyzing...';
+  resultDiv.textContent = 'Analyzing...';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const formData = new FormData();
@@ -38,28 +40,37 @@ uploadForm.addEventListener('submit', async (e) => {
       body: formData
     });
 
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.statusText}`);
+    }
+
     const data = await res.json();
 
     if (data.error) {
-      resultDiv.innerHTML = `Error: ${data.error}`;
+      resultDiv.textContent = `Error: ${data.error}`;
       return;
     }
 
+    // Show scores
     resultDiv.innerHTML = `
       <p><strong>Beauty Score:</strong> ${data.beauty_score}/100</p>
       <p><strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}</p>
     `;
 
-    // Load and draw image
+    // Display image and draw lines
     imgElement.src = URL.createObjectURL(file);
     imgElement.onload = () => {
+      // Resize canvas to image
       canvas.width = imgElement.width;
       canvas.height = imgElement.height;
       canvas.style.width = imgElement.width + 'px';
       canvas.style.height = imgElement.height + 'px';
 
+      // Draw image on canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(imgElement, 0, 0);
 
+      // Draw red lines if measurements exist
       if (data.measurements && Array.isArray(data.measurements)) {
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
@@ -72,9 +83,8 @@ uploadForm.addEventListener('submit', async (e) => {
         });
       }
     };
-
   } catch (err) {
-    resultDiv.innerHTML = 'Something went wrong.';
+    resultDiv.textContent = 'Something went wrong: ' + err.message;
     console.error(err);
   }
 });
