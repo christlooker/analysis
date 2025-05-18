@@ -32,14 +32,12 @@
       margin-bottom: 2rem;
     }
 
-    /* Hide default file input */
     #imageInput {
       display: none;
     }
 
-    /* Styled label as custom button */
     .custom-file-upload {
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 1rem;
       font-size: 0.9rem;
       border-radius: 6px;
       background: #fff;
@@ -50,7 +48,7 @@
     }
 
     .custom-file-upload.uploaded {
-      background-color: #28a745; /* green */
+      background-color: #28a745;
       color: #fff;
     }
 
@@ -75,9 +73,23 @@
       text-align: center;
     }
 
-    canvas {
-      max-width: 100%;
+    #imageContainer {
+      position: relative;
+      display: inline-block;
       margin-top: 1rem;
+      max-width: 90%;
+    }
+
+    #uploadedImage {
+      max-width: 100%;
+      display: block;
+    }
+
+    #overlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -93,8 +105,10 @@
 
   <div id="result"></div>
 
-  <img id="uploadedImage" style="display:none;" />
-  <canvas id="overlayCanvas"></canvas>
+  <div id="imageContainer">
+    <img id="uploadedImage" />
+    <canvas id="overlayCanvas"></canvas>
+  </div>
 
   <script src="script.js"></script>
 </body>
