@@ -1,35 +1,12 @@
-const imageInput = document.getElementById('imageInput');
-const fileLabel = document.getElementById('fileLabel');
-const resultDiv = document.getElementById('result');
-const imgElement = document.getElementById('uploadedImage');
-const canvas = document.getElementById('overlayCanvas');
-const ctx = canvas.getContext('2d');
-
-let selectedFile = null;
-
-// When user selects an image
-imageInput.addEventListener('change', () => {
-  if (imageInput.files.length > 0) {
-    selectedFile = imageInput.files[0];
-    fileLabel.classList.add('uploaded');
-    fileLabel.textContent = 'Uploaded';
-  }
-});
-
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-
-  if (!selectedFile) {
-    resultDiv.innerHTML = 'Please select an image before analyzing.';
-    return;
-  }
-
-  // Reset button to default state
-  fileLabel.classList.remove('uploaded');
-  fileLabel.textContent = 'Choose Image';
+  const fileInput = document.getElementById('imageInput');
+  const file = fileInput.files[0];
 
   const formData = new FormData();
-  formData.append('image', selectedFile);
+  formData.append('image', file);
+
+  const resultDiv = document.getElementById('result');
   resultDiv.innerHTML = 'Analyzing...';
 
   try {
@@ -38,53 +15,18 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       body: formData
     });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      const errorMsg = errorData.error || `Server error (${res.status})`;
-      resultDiv.innerHTML = `Error: ${errorMsg}`;
-      return;
-    }
-
     const data = await res.json();
 
     if (data.error) {
       resultDiv.innerHTML = `Error: ${data.error}`;
-      return;
+    } else {
+      resultDiv.innerHTML = `
+        <p><strong>Beauty Score:</strong> ${data.beauty_score}/100</p>
+        <p><strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}</p>
+      `;
     }
-
-    // Show results
-    resultDiv.innerHTML = `
-      <p><strong>Beauty Score:</strong> ${data.beauty_score}/100</p>
-      <p><strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}</p>
-    `;
-
-    // Display uploaded image
-    const imgURL = URL.createObjectURL(selectedFile);
-    imgElement.onload = () => {
-      canvas.width = imgElement.width;
-      canvas.height = imgElement.height;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(imgElement, 0, 0);
-
-      // Draw red lines if provided
-      if (data.measurements && Array.isArray(data.measurements)) {
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        data.measurements.forEach(pair => {
-          ctx.beginPath();
-          ctx.moveTo(pair[0][0], pair[0][1]);
-          ctx.lineTo(pair[1][0], pair[1][1]);
-          ctx.stroke();
-        });
-      }
-
-      URL.revokeObjectURL(imgURL);
-    };
-
-    imgElement.src = imgURL;
-
   } catch (err) {
     resultDiv.innerHTML = 'Something went wrong.';
-    console.error('Fetch error:', err);
+    console.error(err);
   }
 });
