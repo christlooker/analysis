@@ -38,7 +38,6 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       <strong>Ideal Eye Distance:</strong> ${data.ideal_eye_distance}
     `;
 
-    // Load image into memory to draw on canvas
     const imageURL = URL.createObjectURL(file);
     const img = new Image();
 
@@ -67,7 +66,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     img.src = imageURL;
 
   } catch (err) {
-    console.error('Error:', err);
+    console.error('Catch error:', err);
     resultDiv.textContent = 'Something went wrong.';
   }
 });
