@@ -1,10 +1,12 @@
 const imageInput = document.getElementById('imageInput');
 const fileLabel = document.getElementById('fileLabel');
+const uploadForm = document.getElementById('uploadForm');
 const resultDiv = document.getElementById('result');
 const imgElement = document.getElementById('uploadedImage');
 const canvas = document.getElementById('overlayCanvas');
 const ctx = canvas.getContext('2d');
 
+// Handle upload button feedback
 imageInput.addEventListener('change', () => {
   if (imageInput.files.length > 0) {
     fileLabel.classList.add('uploaded');
@@ -12,22 +14,23 @@ imageInput.addEventListener('change', () => {
   }
 });
 
-document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+uploadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const file = imageInput.files[0];
   if (!file) {
-    resultDiv.innerHTML = 'Please select an image before analyzing.';
+    resultDiv.innerHTML = 'Please choose an image.';
     return;
   }
 
-  // Reset button state
+  // Reset result and UI
   fileLabel.classList.remove('uploaded');
   fileLabel.textContent = 'Choose Image';
+  resultDiv.innerHTML = 'Analyzing...';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const formData = new FormData();
   formData.append('image', file);
-  resultDiv.innerHTML = 'Analyzing...';
 
   try {
     const res = await fetch('https://ratingyou-analysis-api.onrender.com/analyze', {
@@ -47,21 +50,24 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       <p><strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}</p>
     `;
 
-    // Draw the image and measurements
+    // Load and draw image
     imgElement.src = URL.createObjectURL(file);
     imgElement.onload = () => {
       canvas.width = imgElement.width;
       canvas.height = imgElement.height;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.style.width = imgElement.width + 'px';
+      canvas.style.height = imgElement.height + 'px';
+
       ctx.drawImage(imgElement, 0, 0);
 
-      if (data.measurements && data.measurements.length > 0) {
+      if (data.measurements && Array.isArray(data.measurements)) {
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
         data.measurements.forEach(pair => {
+          const [start, end] = pair;
           ctx.beginPath();
-          ctx.moveTo(pair[0][0], pair[0][1]);
-          ctx.lineTo(pair[1][0], pair[1][1]);
+          ctx.moveTo(start[0], start[1]);
+          ctx.lineTo(end[0], end[1]);
           ctx.stroke();
         });
       }
