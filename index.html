@@ -2,20 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Face Beauty Analyzer</title>
   <style>
-    #overlayCanvas {
-      border: 1px solid black;
-      display: block;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      text-align: center;
+    }
+    canvas {
+      border: 1px solid #ccc;
       max-width: 100%;
-      height: auto;
       margin-top: 20px;
+    }
+    img {
+      max-width: 100%;
+      display: block;
+      margin: 20px auto;
     }
   </style>
 </head>
 <body>
-
   <h1>Face Beauty Analyzer</h1>
 
   <form id="uploadForm">
@@ -25,10 +32,10 @@
 
   <p id="result"></p>
 
-  <!-- Hidden image element used for loading the uploaded image -->
-  <img id="uploadedImage" style="display:none" alt="Uploaded" />
+  <!-- Image Preview -->
+  <img id="uploadedImage" alt="Uploaded Image" />
 
-  <!-- Canvas to show image and measurement lines -->
+  <!-- Canvas for red lines -->
   <canvas id="overlayCanvas"></canvas>
 
   <script src="script.js"></script>
