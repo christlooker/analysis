@@ -35,29 +35,20 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       body: formData
     });
 
-    if (!res.ok) {
-      // Show error from server if possible
-      const errData = await res.json().catch(() => ({}));
-      const errMsg = errData.error || `HTTP error ${res.status}`;
-      resultDiv.innerHTML = `Error: ${errMsg}`;
-      return;
-    }
-
     const data = await res.json();
 
     if (data.error) {
-      resultDiv.innerHTML = `Error: ${data.error}`;
+      resultDiv.innerHTML = Error: ${data.error};
       return;
     }
 
-    resultDiv.innerHTML = `
+    resultDiv.innerHTML = 
       <p><strong>Beauty Score:</strong> ${data.beauty_score}/100</p>
       <p><strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}</p>
-    `;
+    ;
 
-    // Set image src and draw canvas after image loads
-    const imgURL = URL.createObjectURL(file);
-
+    // Draw the image and measurements
+    imgElement.src = URL.createObjectURL(file);
     imgElement.onload = () => {
       canvas.width = imgElement.width;
       canvas.height = imgElement.height;
@@ -74,12 +65,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
           ctx.stroke();
         });
       }
-
-      // Revoke object URL here AFTER drawing
-      URL.revokeObjectURL(imgURL);
     };
-
-    imgElement.src = imgURL;
 
   } catch (err) {
     resultDiv.innerHTML = 'Something went wrong.';
