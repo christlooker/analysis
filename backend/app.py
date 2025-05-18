@@ -29,7 +29,6 @@ def analyze():
     if img is None:
         return jsonify({'error': 'Invalid image'}), 400
 
-    # Convert to RGB for mediapipe
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     with mp_face_mesh.FaceMesh(static_image_mode=True) as face_mesh:
@@ -40,12 +39,19 @@ def analyze():
 
         landmarks = results.multi_face_landmarks[0].landmark
 
-        # Example: get two eye corner landmarks (normalized)
+        height, width, _ = img.shape
+
+        # Example landmarks for eye corners (you can add more)
         left_eye = landmarks[33]
         right_eye = landmarks[263]
 
+        # Convert normalized coords to pixel coords
+        left_eye_px = (int(left_eye.x * width), int(left_eye.y * height))
+        right_eye_px = (int(right_eye.x * width), int(right_eye.y * height))
+
+        # Calculate eye distance
         def euclidean(p1, p2):
-            return ((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2) ** 0.5
+            return ((p1.x - p2.x)**2 + (p1.y - p2.y)**2)**0.5
 
         eye_distance = euclidean(left_eye, right_eye)
         ideal_distance = 0.35  # example ideal value
@@ -54,7 +60,11 @@ def analyze():
         return jsonify({
             'beauty_score': round(beauty_score, 2),
             'eye_distance': round(eye_distance, 4),
-            'ideal_eye_distance': ideal_distance
+            'ideal_eye_distance': ideal_distance,
+            'landmarks': {
+                'left_eye': left_eye_px,
+                'right_eye': right_eye_px
+            }
         })
 
 if __name__ == '__main__':
