@@ -15,12 +15,10 @@ def analyze():
         img = Image.open(file.stream)
         width, height = img.size
 
-        # Example dummy measurements scaled to image dimensions
+        # Dummy example measurements (lines) scaled to image size
         measurements = [
-            # horizontal line near top (e.g., eyes)
-            [[int(0.2 * width), int(0.3 * height)], [int(0.8 * width), int(0.3 * height)]],
-            # vertical line down middle (e.g., nose bridge)
-            [[int(0.5 * width), int(0.2 * height)], [int(0.5 * width), int(0.7 * height)]]
+            [[int(0.2 * width), int(0.3 * height)], [int(0.8 * width), int(0.3 * height)]],  # horizontal line
+            [[int(0.5 * width), int(0.2 * height)], [int(0.5 * width), int(0.7 * height)]]   # vertical line
         ]
 
         response = {
