@@ -39,63 +39,63 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     const img = new Image();
 
     img.onload = () => {
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
 
-  // Fully opaque red lines
-  ctx.strokeStyle = 'red';
-  ctx.lineWidth = 2;
+      // Fully opaque red lines
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
 
-  ctx.font = 'bold 13px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+      // Bold 12px font for text
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
 
-  // Helper to draw line with measurement and box behind text
-  function drawLineWithLabel(start, end) {
-    ctx.beginPath();
-    ctx.moveTo(...start);
-    ctx.lineTo(...end);
-    ctx.stroke();
+      // Helper function to draw lines with measurement label and background box
+      function drawLineWithLabel(start, end) {
+        ctx.beginPath();
+        ctx.moveTo(...start);
+        ctx.lineTo(...end);
+        ctx.stroke();
 
-    const midX = (start[0] + end[0]) / 2;
-    const midY = (start[1] + end[1]) / 2;
-    const distance = Math.hypot(end[0] - start[0], end[1] - start[1]).toFixed(1);
+        const midX = (start[0] + end[0]) / 2;
+        const midY = (start[1] + end[1]) / 2;
+        const distance = Math.hypot(end[0] - start[0], end[1] - start[1]).toFixed(1);
 
-    const label = `${distance} px`;
+        const label = `${distance} px`;
 
-    // Measure text size
-    const padding = 4;
-    const metrics = ctx.measureText(label);
-    const textWidth = metrics.width;
-    const textHeight = 13; // approx height
+        const padding = 2; // smaller padding
+        const metrics = ctx.measureText(label);
+        const textWidth = metrics.width;
+        const textHeight = 12; // approx font height
 
-    // Draw semi-transparent white box behind text
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.fillRect(midX - textWidth / 2 - padding, midY - textHeight / 2 - padding, textWidth + padding * 2, textHeight + padding * 2);
+        // Draw semi-transparent white box behind text
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillRect(midX - textWidth / 2 - padding, midY - textHeight / 2 - padding, textWidth + padding * 2, textHeight + padding * 2);
 
-    // Draw the text on top
-    ctx.fillStyle = 'red';
-    ctx.fillText(label, midX, midY);
-  }
+        // Draw red text on top
+        ctx.fillStyle = 'red';
+        ctx.fillText(label, midX, midY);
+      }
 
-  // Draw width line and label
-  drawLineWithLabel(left_cheek, right_cheek);
+      // Draw cheek-to-cheek width line with label
+      drawLineWithLabel(left_cheek, right_cheek);
 
-  // Draw height line and label
-  drawLineWithLabel(middle_eyebrow, upper_lip);
+      // Draw eyebrow-to-upper-lip height line with label
+      drawLineWithLabel(middle_eyebrow, upper_lip);
 
-  // Show results below image
-  resultDiv.innerHTML = `
-    <strong>Facial Width-to-Height Ratio (fWHR):</strong>
-    ${fWHR}
-    <span class="ideal">(ideal: ${data.ideal_fWHR})</span>
-  `;
+      // Show results below image
+      resultDiv.innerHTML = `
+        <strong>Facial Width-to-Height Ratio (fWHR):</strong>
+        ${fWHR}
+        <span class="ideal">(ideal: ${data.ideal_fWHR})</span>
+      `;
 
-  URL.revokeObjectURL(imageURL);
-};
+      URL.revokeObjectURL(imageURL);
+    };
 
     img.src = imageURL;
 
