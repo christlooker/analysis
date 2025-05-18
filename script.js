@@ -76,4 +76,11 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
     imgElement.onerror = () => {
       console.error('Image failed to load!');
-      resultDiv.textContent =
+      resultDiv.textContent = 'Image failed to load.';
+    };
+
+  } catch (err) {
+    console.error('Catch error:', err);
+    resultDiv.textContent = 'Something went wrong.';
+  }
+});
