@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from PIL import Image
-import io
 
 app = Flask(__name__)
 
@@ -15,10 +14,10 @@ def analyze():
         img = Image.open(file.stream)
         width, height = img.size
 
-        # Dummy example measurements (lines) scaled to image size
+        # Normalized dummy measurements (coordinates 0 to 1)
         measurements = [
-            [[int(0.2 * width), int(0.3 * height)], [int(0.8 * width), int(0.3 * height)]],  # horizontal line
-            [[int(0.5 * width), int(0.2 * height)], [int(0.5 * width), int(0.7 * height)]]   # vertical line
+            [[0.2, 0.3], [0.8, 0.3]],  # horizontal line
+            [[0.5, 0.2], [0.5, 0.7]]   # vertical line
         ]
 
         response = {
