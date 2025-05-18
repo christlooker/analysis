@@ -27,36 +27,42 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     }
 
     const data = await res.json();
+    console.log('API response data:', data);
 
-    // Show results text
     resultDiv.innerHTML = `
       <strong>Beauty Score:</strong> ${data.beauty_score}/100<br/>
       <strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}<br/>
       <strong>Ideal Eye Distance:</strong> ${data.ideal_eye_distance}
     `;
 
-    // Load the uploaded image
     const imgElement = document.getElementById('uploadedImage');
     const canvas = document.getElementById('overlayCanvas');
     const ctx = canvas.getContext('2d');
 
     const imgURL = URL.createObjectURL(file);
+    console.log('Created Object URL:', imgURL);
+
     imgElement.src = imgURL;
 
     imgElement.onload = () => {
       console.log('Image loaded:', imgElement.naturalWidth, imgElement.naturalHeight);
 
-      // Set canvas size to image size
+      if (imgElement.naturalWidth === 0 || imgElement.naturalHeight === 0) {
+        console.error('Image has zero natural width or height!');
+        resultDiv.textContent = 'Failed to load image dimensions.';
+        return;
+      }
+
       canvas.width = imgElement.naturalWidth;
       canvas.height = imgElement.naturalHeight;
 
-      // Draw image on canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(imgElement, 0, 0);
 
-      // Draw red line between landmarks
       const leftEye = data.landmarks.left_eye;
       const rightEye = data.landmarks.right_eye;
+
+      console.log('Drawing line from', leftEye, 'to', rightEye);
 
       ctx.strokeStyle = 'red';
       ctx.lineWidth = 3;
@@ -65,12 +71,9 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       ctx.lineTo(rightEye[0], rightEye[1]);
       ctx.stroke();
 
-      // Clean up the object URL
       URL.revokeObjectURL(imgURL);
     };
 
-  } catch (err) {
-    console.error(err);
-    resultDiv.textContent = 'Something went wrong.';
-  }
-});
+    imgElement.onerror = () => {
+      console.error('Image failed to load!');
+      resultDiv.textContent =
