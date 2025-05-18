@@ -1,3 +1,17 @@
+const imageInput = document.getElementById('imageInput');
+const fileLabel = document.getElementById('fileLabel');
+const resultDiv = document.getElementById('result');
+const imgElement = document.getElementById('uploadedImage');
+const canvas = document.getElementById('overlayCanvas');
+const ctx = canvas.getContext('2d');
+
+imageInput.addEventListener('change', () => {
+  if (imageInput.files.length > 0) {
+    fileLabel.classList.add('uploaded');
+    fileLabel.textContent = 'Uploaded';
+  }
+});
+
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -22,7 +36,11 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
+      // Show error from server if possible
+      const errData = await res.json().catch(() => ({}));
+      const errMsg = errData.error || `HTTP error ${res.status}`;
+      resultDiv.innerHTML = `Error: ${errMsg}`;
+      return;
     }
 
     const data = await res.json();
@@ -32,16 +50,14 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       return;
     }
 
-    // Set the result text
     resultDiv.innerHTML = `
       <p><strong>Beauty Score:</strong> ${data.beauty_score}/100</p>
       <p><strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}</p>
     `;
 
-    // Create object URL for the uploaded image
+    // Set image src and draw canvas after image loads
     const imgURL = URL.createObjectURL(file);
 
-    // Set image src and wait for it to load before drawing on canvas
     imgElement.onload = () => {
       canvas.width = imgElement.width;
       canvas.height = imgElement.height;
@@ -52,19 +68,14 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
         data.measurements.forEach(pair => {
-          const startX = pair[0][0] * canvas.width;
-          const startY = pair[0][1] * canvas.height;
-          const endX = pair[1][0] * canvas.width;
-          const endY = pair[1][1] * canvas.height;
-
           ctx.beginPath();
-          ctx.moveTo(startX, startY);
-          ctx.lineTo(endX, endY);
+          ctx.moveTo(pair[0][0], pair[0][1]);
+          ctx.lineTo(pair[1][0], pair[1][1]);
           ctx.stroke();
         });
       }
 
-      // Release object URL to free memory after drawing
+      // Revoke object URL here AFTER drawing
       URL.revokeObjectURL(imgURL);
     };
 
@@ -72,6 +83,6 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
   } catch (err) {
     resultDiv.innerHTML = 'Something went wrong.';
-    console.error('Fetch or processing error:', err);
+    console.error(err);
   }
 });
