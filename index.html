@@ -1,34 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>RatingU Beauty Analyzer</title>
- <link rel="icon" href="favicon.ico" />
-<style>
-  #overlayCanvas {
-    border: 1px solid black;
-    max-width: 100%;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Face Beauty Analyzer</title>
+  <style>
+    #overlayCanvas {
+      border: 1px solid black;
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Face Beauty Analyzer</h1>
+  <h1>Face Beauty Analyzer</h1>
 
-<form id="uploadForm">
-  <input type="file" id="imageInput" accept="image/*" required />
-  <button type="submit">Analyze</button>
-</form>
+  <form id="uploadForm">
+    <input type="file" id="imageInput" accept="image/*" required />
+    <button type="submit">Analyze</button>
+  </form>
 
-<p id="result"></p>
+  <p id="result"></p>
 
-<!-- Image element to load file (hidden) -->
-<img id="uploadedImage" style="display:none" crossorigin="anonymous" />
+  <!-- Hidden image element used for loading the uploaded image -->
+  <img id="uploadedImage" style="display:none" alt="Uploaded" />
 
-<!-- Canvas for drawing -->
-<canvas id="overlayCanvas"></canvas>
+  <!-- Canvas to show image and measurement lines -->
+  <canvas id="overlayCanvas"></canvas>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
