@@ -19,7 +19,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   canvas.style.display = 'none';
 
   try {
-    const res = await fetch('https://YOUR-BACKEND-URL.onrender.com/analyze', {
+    const res = await fetch('https://ratingyou-analysis-api.onrender.com/analyze', {
       method: 'POST',
       body: formData
     });
