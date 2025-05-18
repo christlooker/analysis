@@ -1,106 +1,91 @@
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const fileInput = document.getElementById('imageInput');
-  const file = fileInput.files[0];
-
+  const imageInput = document.getElementById('imageInput');
+  const file = imageInput.files[0];
   if (!file) {
-    alert('Please choose an image.');
+    alert("Please select an image file.");
     return;
   }
 
   const formData = new FormData();
   formData.append('image', file);
 
-  const resultDiv = document.getElementById('result');
-  const canvas = document.getElementById('overlayCanvas');
+  const resultsDiv = document.getElementById('results');
+  const canvas = document.getElementById('analyzedCanvas');
   const ctx = canvas.getContext('2d');
 
-  resultDiv.textContent = 'Analyzing...';
+  resultsDiv.innerHTML = "Analyzing...";
+  canvas.style.display = 'none';
 
   try {
-    const res = await fetch('https://ratingyou-analysis-api.onrender.com/analyze', {
+    const res = await fetch('https://YOUR-BACKEND-URL.onrender.com/analyze', {
       method: 'POST',
       body: formData
     });
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      resultDiv.textContent = `Error: ${errorData.error || 'Unknown error'}`;
+    const data = await res.json();
+
+    if (data.error) {
+      resultsDiv.innerHTML = `Error: ${data.error}`;
       return;
     }
 
-    const data = await res.json();
-
-    const { left_cheek, right_cheek, upper_lip, middle_eyebrow } = data.landmarks;
-    const fWHR = data.fWHR;
-
-    const imageURL = URL.createObjectURL(file);
     const img = new Image();
-
     img.onload = () => {
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.style.display = 'block';
       ctx.drawImage(img, 0, 0);
 
-      // Fully opaque red lines
-      ctx.strokeStyle = 'red';
+      // Draw lines and labels
       ctx.lineWidth = 2;
-
-      // Bold 12px font for text
+      ctx.strokeStyle = 'red';
+      ctx.fillStyle = 'white';
       ctx.font = 'bold 12px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // Helper function to draw lines with measurement label and background box
-      function drawLineWithLabel(start, end) {
+      for (const m of data.measurements) {
+        const [x1, y1] = m.start;
+        const [x2, y2] = m.end;
+
+        // Draw the line
+        ctx.strokeStyle = 'red';
         ctx.beginPath();
-        ctx.moveTo(...start);
-        ctx.lineTo(...end);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
         ctx.stroke();
 
-        const midX = (start[0] + end[0]) / 2;
-        const midY = (start[1] + end[1]) / 2;
-        const distance = Math.hypot(end[0] - start[0], end[1] - start[1]).toFixed(1);
+        // Draw text box with measurement value
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        const text = `${m.value.toFixed(2)} px`;
 
-        const label = `${distance} px`;
+        // Box background
+        const textWidth = ctx.measureText(text).width;
+        const padding = 4;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(midX - textWidth / 2 - padding, midY - 8, textWidth + padding * 2, 16);
 
-        const padding = 2; // smaller padding
-        const metrics = ctx.measureText(label);
-        const textWidth = metrics.width;
-        const textHeight = 12; // approx font height
-
-        // Draw semi-transparent white box behind text
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.fillRect(midX - textWidth / 2 - padding, midY - textHeight / 2 - padding, textWidth + padding * 2, textHeight + padding * 2);
-
-        // Draw red text on top
-        ctx.fillStyle = 'red';
-        ctx.fillText(label, midX, midY);
+        // Text
+        ctx.fillStyle = 'white';
+        ctx.fillText(text, midX, midY);
       }
-
-      // Draw cheek-to-cheek width line with label
-      drawLineWithLabel(left_cheek, right_cheek);
-
-      // Draw eyebrow-to-upper-lip height line with label
-      drawLineWithLabel(middle_eyebrow, upper_lip);
-
-      // Show results below image
-      resultDiv.innerHTML = `
-        <strong>Facial Width-to-Height Ratio (fWHR):</strong>
-        ${fWHR}
-        <span class="ideal">(ideal: ${data.ideal_fWHR})</span>
-      `;
-
-      URL.revokeObjectURL(imageURL);
     };
 
-    img.src = imageURL;
+    img.src = 'data:image/jpeg;base64,' + data.image;
+
+    // Generate result HTML
+    resultsDiv.innerHTML = '';
+    data.ratios.forEach((r) => {
+      const p = document.createElement('p');
+      p.innerHTML = `<span class="measurement">${r.name}:</span> ${r.value.toFixed(2)} <span class="ideal">(ideal: ${r.ideal})</span>`;
+      resultsDiv.appendChild(p);
+    });
 
   } catch (err) {
-    console.error('Catch error:', err);
-    resultDiv.textContent = 'Something went wrong.';
+    console.error("Catch error:", err);
+    resultsDiv.innerHTML = 'Something went wrong.';
   }
 });
