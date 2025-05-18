@@ -5,6 +5,11 @@ import mediapipe as mp
 from flask_cors import CORS
 import os
 
+@app.route('/test')
+def test():
+    return 'API is alive!'
+
+
 app = Flask(__name__)
 CORS(app)
 
