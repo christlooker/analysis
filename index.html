@@ -14,7 +14,15 @@
       border: 1px solid #ccc;
       max-width: 100%;
       margin-top: 20px;
-      display: block;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    .ideal {
+      color: #888;
+      font-size: 0.9em;
+      margin-left: 8px;
     }
   </style>
 </head>
@@ -26,12 +34,10 @@
     <button type="submit">Analyze</button>
   </form>
 
-  <p id="result"></p>
-
-  <!-- Canvas for drawing -->
   <canvas id="overlayCanvas"></canvas>
 
-  <!-- Load script AFTER all HTML elements -->
+  <div id="result"></div>
+
   <script src="script.js"></script>
 </body>
 </html>
