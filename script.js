@@ -39,59 +39,63 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     const img = new Image();
 
     img.onload = () => {
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
 
-      // Set line style: red with some transparency (alpha 0.6)
-      ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
-      ctx.lineWidth = 2;
+  // Fully opaque red lines
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 2;
 
-      // Set text style: bold, red, 13px, centered middle
-      ctx.fillStyle = 'red';
-      ctx.font = 'bold 13px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
 
-      // Draw width line (cheek to cheek)
-      ctx.beginPath();
-      ctx.moveTo(...left_cheek);
-      ctx.lineTo(...right_cheek);
-      ctx.stroke();
+  // Helper to draw line with measurement and box behind text
+  function drawLineWithLabel(start, end) {
+    ctx.beginPath();
+    ctx.moveTo(...start);
+    ctx.lineTo(...end);
+    ctx.stroke();
 
-      const width = Math.hypot(
-        right_cheek[0] - left_cheek[0],
-        right_cheek[1] - left_cheek[1]
-      );
-      const midWidthX = (left_cheek[0] + right_cheek[0]) / 2;
-      const midWidthY = (left_cheek[1] + right_cheek[1]) / 2;
-      ctx.fillText(`${width.toFixed(1)} px`, midWidthX, midWidthY);
+    const midX = (start[0] + end[0]) / 2;
+    const midY = (start[1] + end[1]) / 2;
+    const distance = Math.hypot(end[0] - start[0], end[1] - start[1]).toFixed(1);
 
-      // Draw height line (middle eyebrow to upper lip)
-      ctx.beginPath();
-      ctx.moveTo(...middle_eyebrow);
-      ctx.lineTo(...upper_lip);
-      ctx.stroke();
+    const label = `${distance} px`;
 
-      const height = Math.hypot(
-        middle_eyebrow[0] - upper_lip[0],
-        middle_eyebrow[1] - upper_lip[1]
-      );
-      const midHeightX = (middle_eyebrow[0] + upper_lip[0]) / 2;
-      const midHeightY = (middle_eyebrow[1] + upper_lip[1]) / 2;
-      ctx.fillText(`${height.toFixed(1)} px`, midHeightX, midHeightY);
+    // Measure text size
+    const padding = 4;
+    const metrics = ctx.measureText(label);
+    const textWidth = metrics.width;
+    const textHeight = 13; // approx height
 
-      // Show results below image
-      resultDiv.innerHTML = `
-        <strong>Facial Width-to-Height Ratio (fWHR):</strong>
-        ${fWHR}
-        <span class="ideal">(ideal: ${data.ideal_fWHR})</span>
-      `;
+    // Draw semi-transparent white box behind text
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.fillRect(midX - textWidth / 2 - padding, midY - textHeight / 2 - padding, textWidth + padding * 2, textHeight + padding * 2);
 
-      URL.revokeObjectURL(imageURL);
-    };
+    // Draw the text on top
+    ctx.fillStyle = 'red';
+    ctx.fillText(label, midX, midY);
+  }
+
+  // Draw width line and label
+  drawLineWithLabel(left_cheek, right_cheek);
+
+  // Draw height line and label
+  drawLineWithLabel(middle_eyebrow, upper_lip);
+
+  // Show results below image
+  resultDiv.innerHTML = `
+    <strong>Facial Width-to-Height Ratio (fWHR):</strong>
+    ${fWHR}
+    <span class="ideal">(ideal: ${data.ideal_fWHR})</span>
+  `;
+
+  URL.revokeObjectURL(imageURL);
+};
 
     img.src = imageURL;
 
