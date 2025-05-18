@@ -2,7 +2,10 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const fileInput = document.getElementById('imageInput');
-  if (!fileInput.files[0]) return alert('Please select an image.');
+  if (!fileInput.files[0]) {
+    alert('Please select an image.');
+    return;
+  }
 
   const file = fileInput.files[0];
   const formData = new FormData();
@@ -41,15 +44,17 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     imgElement.src = imgURL;
 
     imgElement.onload = () => {
-      // Set canvas size to match image size
+      console.log('Image loaded:', imgElement.naturalWidth, imgElement.naturalHeight);
+
+      // Set canvas size to image size
       canvas.width = imgElement.naturalWidth;
       canvas.height = imgElement.naturalHeight;
 
-      // Draw the image on canvas
+      // Draw image on canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(imgElement, 0, 0);
 
-      // Draw red line(s) between landmarks
+      // Draw red line between landmarks
       const leftEye = data.landmarks.left_eye;
       const rightEye = data.landmarks.right_eye;
 
@@ -60,7 +65,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       ctx.lineTo(rightEye[0], rightEye[1]);
       ctx.stroke();
 
-      // Clean up object URL to avoid memory leaks
+      // Clean up the object URL
       URL.revokeObjectURL(imgURL);
     };
 
