@@ -10,7 +10,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   resultDiv.innerHTML = 'Analyzing...';
 
   try {
-    const res = await fetch('https://ratingyou-analysis-api.onrender.com', {
+    const res = await fetch('https://ratingyou-analysis-api.onrender.com/analyze', {
       method: 'POST',
       body: formData
     });
