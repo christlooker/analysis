@@ -2,113 +2,70 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Face Beauty Analyzer</title>
-  <link rel="icon" href="favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Facial Attractiveness Analyzer</title>
   <style>
     body {
-      background-color: #000;
-      color: #fff;
+      background-color: black;
+      color: white;
       font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
+      text-align: center;
       padding: 2rem;
-      margin: 0;
     }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1.5rem;
+    #fileLabel, #analyzeButton {
+      background-color: white;
+      color: black;
+      border: none;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
     }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
+    #fileLabel.uploaded {
+      background-color: green;
+      color: white;
     }
-
-    #imageInput {
+    #fileInput {
       display: none;
     }
-
-    .custom-file-upload {
-      padding: 0.4rem 1rem;
-      font-size: 0.9rem;
-      border-radius: 6px;
-      background: #fff;
-      color: #000;
-      cursor: pointer;
-      border: none;
-      transition: all 0.3s ease;
-    }
-
-    .custom-file-upload.uploaded {
-      background-color: #28a745;
-      color: #fff;
-    }
-
-    button {
-      padding: 0.7rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      background: #fff;
-      color: #000;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #ccc;
-    }
-
-    #result {
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-
     #imageContainer {
       position: relative;
       display: inline-block;
       margin-top: 1rem;
-      max-width: 90%;
     }
-
     #uploadedImage {
       max-width: 100%;
+      height: auto;
       display: block;
     }
-
     #overlayCanvas {
       position: absolute;
-      top: 0;
       left: 0;
+      top: 0;
       pointer-events: none;
+    }
+    #result {
+      margin-top: 1rem;
+      font-size: 1.2rem;
     }
   </style>
 </head>
 <body>
-
-  <h1>Face Beauty Analyzer</h1>
-
+  <h1>Facial Attractiveness Analyzer</h1>
   <form id="uploadForm">
-    <label for="imageInput" id="fileLabel" class="custom-file-upload">Choose Image</label>
-    <input type="file" id="imageInput" accept="image/*" required />
-    <button type="submit">Analyze</button>
+    <label for="fileInput" id="fileLabel">Choose Image</label>
+    <input type="file" id="fileInput" name="image" accept="image/*" />
+    <button id="analyzeButton" type="submit">Analyze</button>
   </form>
 
-  <div id="result"></div>
-
   <div id="imageContainer">
-    <img id="uploadedImage" />
+    <img id="uploadedImage" alt="Uploaded Image" />
     <canvas id="overlayCanvas"></canvas>
   </div>
+
+  <div id="result"></div>
 
   <script src="script.js"></script>
 </body>
