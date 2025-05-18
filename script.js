@@ -13,14 +13,12 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   formData.append('image', file);
 
   const resultDiv = document.getElementById('result');
-  const imgElement = document.getElementById('uploadedImage');
   const canvas = document.getElementById('overlayCanvas');
   const ctx = canvas.getContext('2d');
 
   resultDiv.textContent = 'Analyzing...';
 
   try {
-    // Send image to backend
     const res = await fetch('https://ratingyou-analysis-api.onrender.com/analyze', {
       method: 'POST',
       body: formData
@@ -33,7 +31,6 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     }
 
     const data = await res.json();
-    console.log('API response data:', data);
 
     resultDiv.innerHTML = `
       <strong>Beauty Score:</strong> ${data.beauty_score}/100<br/>
@@ -41,20 +38,17 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       <strong>Ideal Eye Distance:</strong> ${data.ideal_eye_distance}
     `;
 
-    // Display image
+    // Load image into memory to draw on canvas
     const imageURL = URL.createObjectURL(file);
-    imgElement.src = imageURL;
+    const img = new Image();
 
-    imgElement.onload = () => {
-      // Set canvas size to match image
-      canvas.width = imgElement.naturalWidth;
-      canvas.height = imgElement.naturalHeight;
+    img.onload = () => {
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
 
-      // Draw image onto canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(imgElement, 0, 0);
+      ctx.drawImage(img, 0, 0);
 
-      // Draw red line between eyes
       const left = data.landmarks.left_eye;
       const right = data.landmarks.right_eye;
 
@@ -69,6 +63,8 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
       URL.revokeObjectURL(imageURL);
     };
+
+    img.src = imageURL;
 
   } catch (err) {
     console.error('Error:', err);
