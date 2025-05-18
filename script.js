@@ -1,6 +1,5 @@
-const imageInput = document.getElementById('fileInput');
+const imageInput = document.getElementById('imageInput');
 const fileLabel = document.getElementById('fileLabel');
-const uploadForm = document.getElementById('uploadForm');
 const resultDiv = document.getElementById('result');
 const imgElement = document.getElementById('uploadedImage');
 const canvas = document.getElementById('overlayCanvas');
@@ -10,29 +9,25 @@ imageInput.addEventListener('change', () => {
   if (imageInput.files.length > 0) {
     fileLabel.classList.add('uploaded');
     fileLabel.textContent = 'Uploaded';
-  } else {
-    fileLabel.classList.remove('uploaded');
-    fileLabel.textContent = 'Choose Image';
   }
 });
 
-uploadForm.addEventListener('submit', async (e) => {
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const file = imageInput.files[0];
   if (!file) {
-    resultDiv.textContent = 'Please choose an image before analyzing.';
+    resultDiv.innerHTML = 'Please select an image before analyzing.';
     return;
   }
 
-  // Reset UI
+  // Reset button state
   fileLabel.classList.remove('uploaded');
   fileLabel.textContent = 'Choose Image';
-  resultDiv.textContent = 'Analyzing...';
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const formData = new FormData();
   formData.append('image', file);
+  resultDiv.innerHTML = 'Analyzing...';
 
   try {
     const res = await fetch('https://ratingyou-analysis-api.onrender.com/analyze', {
@@ -40,51 +35,40 @@ uploadForm.addEventListener('submit', async (e) => {
       body: formData
     });
 
-    if (!res.ok) {
-      throw new Error(`Server error: ${res.statusText}`);
-    }
-
     const data = await res.json();
 
     if (data.error) {
-      resultDiv.textContent = `Error: ${data.error}`;
+      resultDiv.innerHTML = `Error: ${data.error}`;
       return;
     }
 
-    // Show scores
     resultDiv.innerHTML = `
       <p><strong>Beauty Score:</strong> ${data.beauty_score}/100</p>
       <p><strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}</p>
     `;
 
-    // Display image and draw lines
+    // Draw the image and measurements
     imgElement.src = URL.createObjectURL(file);
     imgElement.onload = () => {
-      // Resize canvas to image
       canvas.width = imgElement.width;
       canvas.height = imgElement.height;
-      canvas.style.width = imgElement.width + 'px';
-      canvas.style.height = imgElement.height + 'px';
-
-      // Draw image on canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(imgElement, 0, 0);
 
-      // Draw red lines if measurements exist
-      if (data.measurements && Array.isArray(data.measurements)) {
+      if (data.measurements && data.measurements.length > 0) {
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
         data.measurements.forEach(pair => {
-          const [start, end] = pair;
           ctx.beginPath();
-          ctx.moveTo(start[0], start[1]);
-          ctx.lineTo(end[0], end[1]);
+          ctx.moveTo(pair[0][0], pair[0][1]);
+          ctx.lineTo(pair[1][0], pair[1][1]);
           ctx.stroke();
         });
       }
     };
+
   } catch (err) {
-    resultDiv.textContent = 'Something went wrong: ' + err.message;
+    resultDiv.innerHTML = 'Something went wrong.';
     console.error(err);
   }
 });
