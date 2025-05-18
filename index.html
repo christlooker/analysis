@@ -1,68 +1,101 @@
-// Image input feedback
-const imageInput = document.getElementById('imageInput');
-const fileLabel = document.getElementById('fileLabel');
-
-imageInput.addEventListener('change', () => {
-  if (imageInput.files.length > 0) {
-    fileLabel.classList.add('uploaded');
-    fileLabel.textContent = 'Uploaded';
-  }
-});
-
-document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  // Reset button state
-  fileLabel.classList.remove('uploaded');
-  fileLabel.textContent = 'Choose Image';
-
-  const file = imageInput.files[0];
-  const formData = new FormData();
-  formData.append('image', file);
-
-  const resultDiv = document.getElementById('result');
-  resultDiv.innerHTML = 'Analyzing...';
-
-  try {
-    const res = await fetch('https://ratingyou-analysis-api.onrender.com/analyze', {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      resultDiv.innerHTML = `Error: ${data.error}`;
-    } else {
-      resultDiv.innerHTML = `
-        <p><strong>Beauty Score:</strong> ${data.beauty_score}/100</p>
-        <p><strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}</p>
-      `;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Face Beauty Analyzer</title>
+  <link rel="icon" href="favicon.ico" />
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 2rem;
+      margin: 0;
     }
 
-    // Draw image & lines
-    const imgElement = document.getElementById('uploadedImage');
-    imgElement.src = URL.createObjectURL(file);
-    imgElement.onload = () => {
-      const canvas = document.getElementById('overlayCanvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = imgElement.width;
-      canvas.height = imgElement.height;
-      ctx.drawImage(imgElement, 0, 0);
-      if (data.measurements && data.measurements.length > 0) {
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        data.measurements.forEach(pair => {
-          ctx.beginPath();
-          ctx.moveTo(pair[0][0], pair[0][1]);
-          ctx.lineTo(pair[1][0], pair[1][1]);
-          ctx.stroke();
-        });
-      }
-    };
-    imgElement.style.display = 'none'; // stays hidden
-  } catch (err) {
-    resultDiv.innerHTML = 'Something went wrong.';
-    console.error(err);
-  }
-});
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Hide default file input */
+    #imageInput {
+      display: none;
+    }
+
+    /* Styled label as custom button */
+    .custom-file-upload {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+    }
+
+    .custom-file-upload.uploaded {
+      background-color: #28a745; /* green */
+      color: #fff;
+    }
+
+    button {
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #ccc;
+    }
+
+    #result {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    canvas {
+      max-width: 100%;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Face Beauty Analyzer</h1>
+
+  <form id="uploadForm">
+    <label for="imageInput" id="fileLabel" class="custom-file-upload">Choose Image</label>
+    <input type="file" id="imageInput" accept="image/*" required />
+    <button type="submit">Analyze</button>
+  </form>
+
+  <div id="result"></div>
+
+  <img id="uploadedImage" style="display:none;" />
+  <canvas id="overlayCanvas"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>
