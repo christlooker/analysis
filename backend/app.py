@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import base64
 from PIL import Image
+import math
 
 app = Flask(__name__)
 CORS(app)
@@ -15,6 +16,13 @@ face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, refin
 # Helper Functions
 def calculate_distance(point1, point2):
     return np.linalg.norm(np.array(point1) - np.array(point2))
+
+def calculate_angle(a, b, c):
+    ab = np.array(a) - np.array(b)
+    cb = np.array(c) - np.array(b)
+    cosine_angle = np.dot(ab, cb) / (np.linalg.norm(ab) * np.linalg.norm(cb))
+    angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))
+    return np.degrees(angle)
 
 def draw_line_with_label(image, pt1, pt2, label):
     pt1 = tuple(map(int, pt1))
@@ -39,16 +47,16 @@ def analyze():
     file = request.files['image']
     image = Image.open(file.stream).convert('RGB')
     image_np = np.array(image)
-    h, w, _ = image_np.shape
-
     results = face_mesh.process(image_np)
+
     if not results.multi_face_landmarks:
         return jsonify({'error': 'No face detected'}), 400
 
-    landmarks = results.multi_face_landmarks[0].landmark
     annotated_image = image_np.copy()
+    landmarks = results.multi_face_landmarks[0].landmark
+    h, w, _ = annotated_image.shape
 
-    # Get relevant points (using correct (h, w))
+    # Points - example subset, add more as needed
     points = {
         'hairline': get_point(landmarks, 10, (h, w)),
         'chin': get_point(landmarks, 152, (h, w)),
@@ -65,98 +73,30 @@ def analyze():
         'eye_right_inner': get_point(landmarks, 362, (h, w)),
     }
 
-    measurements = []
+    results_dict = {}
 
-    # 1. Facial width to height ratio
+    # Example measurement: Facial width to height ratio
     width = calculate_distance(points['left_cheek'], points['right_cheek'])
     height = calculate_distance(points['nasion'], points['chin'])
     facial_ratio = width / height if height != 0 else 0
-    measurements.append({
-        'name': 'Facial Width/Height',
-        'value': facial_ratio,
-        'ideal': '1.8+',
-        'start': points['left_cheek'],
-        'end': points['right_cheek'],
-        'line_label_1': f"{int(width)} px",
-        'start2': points['nasion'],
-        'end2': points['chin'],
-        'line_label_2': f"{int(height)} px"
-    })
-
-    # Draw lines for facial width and height
+    results_dict['Facial Width/Height'] = round(facial_ratio, 2)
     draw_line_with_label(annotated_image, points['left_cheek'], points['right_cheek'], f"{int(width)} px")
     draw_line_with_label(annotated_image, points['nasion'], points['chin'], f"{int(height)} px")
 
-    # 2. Midface ratio
-    eye_dist = calculate_distance(points['eye_left_inner'], points['eye_right_inner'])
-    midface_height = calculate_distance(points['nasion'], points['upper_lip'])
-    midface_ratio = eye_dist / midface_height if midface_height != 0 else 0
-    measurements.append({
-        'name': 'Midface Ratio',
-        'value': midface_ratio,
-        'ideal': '1.0-1.1',
-        'start': points['eye_left_inner'],
-        'end': points['eye_right_inner'],
-        'line_label_1': f"{int(eye_dist)} px",
-        'start2': points['nasion'],
-        'end2': points['upper_lip'],
-        'line_label_2': f"{int(midface_height)} px"
-    })
+    # Add your other measurements here...
 
-    draw_line_with_label(annotated_image, points['eye_left_inner'], points['eye_right_inner'], f"{int(eye_dist)} px")
-    draw_line_with_label(annotated_image, points['nasion'], points['upper_lip'], f"{int(midface_height)} px")
+    # IMPORTANT FIX: Convert RGB (PIL) to BGR (OpenCV) before encoding
+    annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR)
 
-    # 3. Mouth to Nose ratio
-    mouth_width = calculate_distance(points['mouth_left'], points['mouth_right'])
-    nose_width = calculate_distance(points['left_cheek'], points['right_cheek']) * 0.4  # approximation
-    mouth_nose_ratio = mouth_width / nose_width if nose_width != 0 else 0
-    measurements.append({
-        'name': 'Mouth/Nose Ratio',
-        'value': mouth_nose_ratio,
-        'ideal': '1.5-1.62',
-        'start': points['mouth_left'],
-        'end': points['mouth_right'],
-        'line_label_1': f"{int(mouth_width)} px"
-    })
+    success, buffer = cv2.imencode('.jpg', annotated_image)
+    if not success:
+        return jsonify({'error': 'Image encoding failed'}), 500
 
-    draw_line_with_label(annotated_image, points['mouth_left'], points['mouth_right'], f"{int(mouth_width)} px")
-
-    # Prepare list of measurements for frontend (flatten lines for each measurement)
-    lines = []
-    for m in measurements:
-        # First line
-        lines.append({
-            'start': m['start'],
-            'end': m['end'],
-            'value': float(m['value']),
-            'label': m.get('line_label_1', '')
-        })
-        # Optional second line (some ratios use two lines)
-        if 'start2' in m and 'end2' in m:
-            lines.append({
-                'start': m['start2'],
-                'end': m['end2'],
-                'value': float(m['value']),
-                'label': m.get('line_label_2', '')
-            })
-
-    # Encode annotated image as base64
-    _, buffer = cv2.imencode('.jpg', annotated_image)
     image_base64 = base64.b64encode(buffer).decode('utf-8')
 
-    # Prepare ratios list for frontend
-    ratios = []
-    for m in measurements:
-        ratios.append({
-            'name': m['name'],
-            'value': m['value'],
-            'ideal': m['ideal']
-        })
-
     return jsonify({
-        'image': image_base64,
-        'measurements': lines,
-        'ratios': ratios
+        'results': results_dict,
+        'image': image_base64
     })
 
 if __name__ == '__main__':
