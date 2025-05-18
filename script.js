@@ -1,22 +1,22 @@
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const imageInput = document.getElementById('imageInput');
-  const file = imageInput.files[0];
+  const fileInput = document.getElementById('imageInput');
+  const file = fileInput.files[0];
+
   if (!file) {
-    alert("Please select an image file.");
+    alert('Please choose an image.');
     return;
   }
 
   const formData = new FormData();
   formData.append('image', file);
 
-  const resultsDiv = document.getElementById('results');
-  const canvas = document.getElementById('analyzedCanvas');
+  const resultDiv = document.getElementById('result');
+  const canvas = document.getElementById('overlayCanvas');
   const ctx = canvas.getContext('2d');
 
-  resultsDiv.innerHTML = "Analyzing...";
-  canvas.style.display = 'none';
+  resultDiv.textContent = 'Analyzing...';
 
   try {
     const res = await fetch('https://ratingyou-analysis-api.onrender.com/analyze', {
@@ -24,78 +24,84 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       body: formData
     });
 
+    if (!res.ok) {
+      const errorData = await res.json();
+      resultDiv.textContent = `Error: ${errorData.error || 'Unknown error'}`;
+      return;
+    }
+
     const data = await res.json();
 
-    if (data.error) {
-      resultsDiv.innerHTML = `Error: ${data.error}`;
-      return;
-    }
+    const { left_cheek, right_cheek, upper_lip, middle_eyebrow } = data.landmarks;
+    const fWHR = data.fWHR;
 
-    if (!data.image) {
-      resultsDiv.innerHTML = 'Error: No image returned.';
-      return;
-    }
-
+    const imageURL = URL.createObjectURL(file);
     const img = new Image();
+
     img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      canvas.style.display = 'block';
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
 
-      if (data.measurements && Array.isArray(data.measurements)) {
-        ctx.lineWidth = 2;
-        ctx.font = 'bold 12px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+      // Fully opaque red lines
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
 
-        data.measurements.forEach((m) => {
-          const [x1, y1] = m.start;
-          const [x2, y2] = m.end;
+      // Bold 12px font for text
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
 
-          // Draw line
-          ctx.strokeStyle = 'red';
-          ctx.beginPath();
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.stroke();
+      // Helper function to draw lines with measurement label and background box
+      function drawLineWithLabel(start, end) {
+        ctx.beginPath();
+        ctx.moveTo(...start);
+        ctx.lineTo(...end);
+        ctx.stroke();
 
-          // Midpoint for label
-          const midX = (x1 + x2) / 2;
-          const midY = (y1 + y2) / 2;
-          const text = `${m.value.toFixed(2)} px`;
+        const midX = (start[0] + end[0]) / 2;
+        const midY = (start[1] + end[1]) / 2;
+        const distance = Math.hypot(end[0] - start[0], end[1] - start[1]).toFixed(1);
 
-          // Text background
-          const textWidth = ctx.measureText(text).width;
-          const padding = 4;
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-          ctx.fillRect(midX - textWidth / 2 - padding, midY - 8, textWidth + padding * 2, 16);
+        const label = `${distance} px`;
 
-          // Text
-          ctx.fillStyle = 'white';
-          ctx.fillText(text, midX, midY);
-        });
+        const padding = 2; // smaller padding
+        const metrics = ctx.measureText(label);
+        const textWidth = metrics.width;
+        const textHeight = 12; // approx font height
+
+        // Draw semi-transparent white box behind text
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillRect(midX - textWidth / 2 - padding, midY - textHeight / 2 - padding, textWidth + padding * 2, textHeight + padding * 2);
+
+        // Draw red text on top
+        ctx.fillStyle = 'red';
+        ctx.fillText(label, midX, midY);
       }
+
+      // Draw cheek-to-cheek width line with label
+      drawLineWithLabel(left_cheek, right_cheek);
+
+      // Draw eyebrow-to-upper-lip height line with label
+      drawLineWithLabel(middle_eyebrow, upper_lip);
+
+      // Show results below image
+      resultDiv.innerHTML = `
+        <strong>Facial Width-to-Height Ratio (fWHR):</strong>
+        ${fWHR}
+        <span class="ideal">(ideal: ${data.ideal_fWHR})</span>
+      `;
+
+      URL.revokeObjectURL(imageURL);
     };
 
-    img.src = 'data:image/jpeg;base64,' + data.image;
-
-    // Show ratios/results
-    resultsDiv.innerHTML = '';
-    if (Array.isArray(data.ratios)) {
-      data.ratios.forEach((r) => {
-        const p = document.createElement('p');
-        p.innerHTML = `
-          <span class="measurement">${r.name}:</span> 
-          ${r.value.toFixed(2)} 
-          <span class="ideal" style="color: #999;">(ideal: ${r.ideal})</span>
-        `;
-        resultsDiv.appendChild(p);
-      });
-    }
+    img.src = imageURL;
 
   } catch (err) {
-    console.error("Catch error:", err);
-    resultsDiv.innerHTML = 'Something went wrong.';
+    console.error('Catch error:', err);
+    resultDiv.textContent = 'Something went wrong.';
   }
 });
+
