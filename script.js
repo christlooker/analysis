@@ -48,7 +48,7 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       ctx.strokeStyle = 'red';
       ctx.lineWidth = 3;
       ctx.fillStyle = 'red';
-      ctx.font = '40px Arial';
+      ctx.font = '15px Arial';
 
       // Draw width (cheek-to-cheek)
       ctx.beginPath();
