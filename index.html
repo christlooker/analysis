@@ -28,12 +28,30 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 1rem;
       margin-bottom: 2rem;
     }
 
-    input[type="file"] {
-      margin-bottom: 1rem;
-      color: #fff;
+    /* Hide the default file input */
+    #imageInput {
+      display: none;
+    }
+
+    /* Custom file input button */
+    .custom-file-upload {
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+      border: none;
+      transition: background 0.3s ease;
+      text-align: center;
+    }
+
+    .custom-file-upload:hover {
+      background: #ccc;
     }
 
     button {
@@ -41,14 +59,14 @@
       font-size: 1rem;
       border: none;
       border-radius: 8px;
-      background: #ff0055;
-      color: #fff;
+      background: #fff;
+      color: #000;
       cursor: pointer;
       transition: background 0.3s ease;
     }
 
     button:hover {
-      background: #ff3366;
+      background: #ccc;
     }
 
     #result {
@@ -60,15 +78,16 @@
     canvas {
       max-width: 100%;
       margin-top: 1rem;
-      border: 2px solid #fff;
+      border: none;
     }
   </style>
 </head>
 <body>
 
-  <h1>RatingU Beauty Analyzer</h1>
+  <h1>Face Beauty Analyzer</h1>
 
   <form id="uploadForm">
+    <label for="imageInput" class="custom-file-upload">Choose Image</label>
     <input type="file" id="imageInput" accept="image/*" required />
     <button type="submit">Analyze</button>
   </form>
