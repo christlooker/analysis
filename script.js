@@ -32,10 +32,12 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 
     const data = await res.json();
 
+    const { left_cheek, right_cheek, upper_lip, middle_eyebrow } = data.landmarks;
+    const fWHR = data.fWHR;
+
     resultDiv.innerHTML = `
-      <strong>Beauty Score:</strong> ${data.beauty_score}/100<br/>
-      <strong>Eye Distance:</strong> ${data.eye_distance.toFixed(4)}<br/>
-      <strong>Ideal Eye Distance:</strong> ${data.ideal_eye_distance}
+      <strong>Facial Width-to-Height Ratio (fWHR):</strong> ${fWHR} <br/>
+      <strong>Ideal:</strong> ${data.ideal_fWHR}
     `;
 
     const imageURL = URL.createObjectURL(file);
@@ -48,17 +50,20 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
 
-      const left = data.landmarks.left_eye;
-      const right = data.landmarks.right_eye;
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 3;
 
-      if (left && right) {
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(left[0], left[1]);
-        ctx.lineTo(right[0], right[1]);
-        ctx.stroke();
-      }
+      // Draw width line (cheek to cheek)
+      ctx.beginPath();
+      ctx.moveTo(...left_cheek);
+      ctx.lineTo(...right_cheek);
+      ctx.stroke();
+
+      // Draw height line (middle eyebrow to upper lip)
+      ctx.beginPath();
+      ctx.moveTo(...middle_eyebrow);
+      ctx.lineTo(...upper_lip);
+      ctx.stroke();
 
       URL.revokeObjectURL(imageURL);
     };
