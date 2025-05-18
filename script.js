@@ -48,27 +48,25 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     `;
 
     // Draw the image and measurements
-    imgElement.src = URL.createObjectURL(file);
     imgElement.onload = () => {
-      canvas.width = imgElement.width;
-      canvas.height = imgElement.height;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(imgElement, 0, 0);
+  canvas.width = imgElement.width;
+  canvas.height = imgElement.height;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(imgElement, 0, 0);
 
-      if (data.measurements && data.measurements.length > 0) {
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        data.measurements.forEach(pair => {
-          ctx.beginPath();
-          ctx.moveTo(pair[0][0], pair[0][1]);
-          ctx.lineTo(pair[1][0], pair[1][1]);
-          ctx.stroke();
-        });
-      }
-    };
+  if (data.measurements && data.measurements.length > 0) {
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    data.measurements.forEach(pair => {
+      const startX = pair[0][0] * canvas.width;
+      const startY = pair[0][1] * canvas.height;
+      const endX = pair[1][0] * canvas.width;
+      const endY = pair[1][1] * canvas.height;
 
-  } catch (err) {
-    resultDiv.innerHTML = 'Something went wrong.';
-    console.error(err);
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+    });
   }
-});
+};
