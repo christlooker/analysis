@@ -102,10 +102,15 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       if (hairline && chin_bottom) drawLineWithLabel(hairline, chin_bottom);
 
       // Show results with ideal values in brackets and different color
-      resultDiv.innerHTML = `
-        <strong>Facial Width-to-Height Ratio (fWHR):</strong> ${data.fWHR} <span class="ideal">(ideal: ${data.ideal_fWHR})</span><br>
-        <strong>Lower/Full Face Ratio:</strong> ${data.lower_full_face_ratio} <span class="ideal">(ideal: ${data.ideal_lower_full_face_ratio})</span>
-      `;
+     const fWHR = data.fWHR ?? 'N/A';
+const fWHRIdeal = data.ideal_fWHR ?? '';
+const lowerFullRatio = data.lower_full_face_ratio ?? 'N/A';
+const lowerFullIdeal = data.ideal_lower_full_face_ratio ?? '';
+
+resultDiv.innerHTML = `
+  <strong>Facial Width-to-Height Ratio (fWHR):</strong> ${fWHR} <span class="ideal">(ideal: ${fWHRIdeal})</span><br>
+  <strong>Lower/Full Face Ratio:</strong> ${lowerFullRatio} <span class="ideal">(ideal: ${lowerFullIdeal})</span>
+`;
 
       URL.revokeObjectURL(imageURL);
     };
