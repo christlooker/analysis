@@ -35,16 +35,25 @@ def analyze():
     midface_height = np.linalg.norm(np.array(middle_eyebrow) - np.array(upper_lip))
     fWHR = round(bizygomatic_width / midface_height, 2) if midface_height != 0 else None
 
+    try:
     lower_face_height = np.linalg.norm(np.array(nasion) - np.array(chin_bottom))
     full_face_height = np.linalg.norm(np.array(hairline) - np.array(chin_bottom))
-    lower_full_face_ratio = round(lower_face_height / full_face_height, 2) if full_face_height != 0 else None
+    
+    if full_face_height > 0:
+        lower_full_face_ratio = round(lower_face_height / full_face_height, 2)
+    else:
+        lower_full_face_ratio = "N/A"
+except Exception as e:
+    print("Error calculating lower/full face ratio:", e)
+    lower_full_face_ratio = "N/A"
+
 
     response = {
         'beauty_score': 0,  # placeholder
         'eye_distance': 0,  # placeholder
         'fWHR': fWHR,
         'ideal_fWHR': '1.8+',
-        'lower_full_face_ratio': lower_full_face_ratio,
+        ''lower_full_face_ratio': lower_full_face_ratio,
         'ideal_lower_full_face_ratio': '0.62+',
         'landmarks': {
             'left_cheek': left_cheek,
