@@ -1,3 +1,16 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import cv2
+import numpy as np
+import io
+import mediapipe as mp
+
+app = Flask(__name__)
+CORS(app, origins=["https://ratingyou.github.io"])  # Enable CORS for GitHub Pages
+
+mp_face_mesh = mp.solutions.face_mesh
+face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True)
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     if 'image' not in request.files:
@@ -21,39 +34,43 @@ def analyze():
         lm = landmarks[index]
         return [int(lm.x * image_width), int(lm.y * image_height)]
 
-    # Key points
-    left_cheek = get_point(234)
-    right_cheek = get_point(454)
-    middle_eyebrow = get_point(9)
-    upper_lip = get_point(13)
-    nasion = get_point(168)
-    chin_bottom = get_point(152)
-    hairline = get_point(10)
+    try:
+        left_cheek = get_point(234)
+        right_cheek = get_point(454)
+        middle_eyebrow = get_point(9)
+        upper_lip = get_point(13)
+        nasion = get_point(168)
+        chin_bottom = get_point(152)
+        hairline = get_point(10)
+    except Exception as e:
+        print("Error retrieving landmarks:", e)
+        return jsonify({'error': 'Could not extract facial landmarks'}), 500
 
     # Measurements
-    bizygomatic_width = np.linalg.norm(np.array(left_cheek) - np.array(right_cheek))
-    midface_height = np.linalg.norm(np.array(middle_eyebrow) - np.array(upper_lip))
-    fWHR = round(bizygomatic_width / midface_height, 2) if midface_height != 0 else None
-
+    fWHR = "N/A"
     try:
-    lower_face_height = np.linalg.norm(np.array(nasion) - np.array(chin_bottom))
-    full_face_height = np.linalg.norm(np.array(hairline) - np.array(chin_bottom))
-    
-    if full_face_height > 0:
-        lower_full_face_ratio = round(lower_face_height / full_face_height, 2)
-    else:
-        lower_full_face_ratio = "N/A"
-except Exception as e:
-    print("Error calculating lower/full face ratio:", e)
-    lower_full_face_ratio = "N/A"
+        bizygomatic_width = np.linalg.norm(np.array(left_cheek) - np.array(right_cheek))
+        midface_height = np.linalg.norm(np.array(middle_eyebrow) - np.array(upper_lip))
+        if midface_height > 0:
+            fWHR = round(bizygomatic_width / midface_height, 2)
+    except Exception as e:
+        print("Error calculating fWHR:", e)
 
+    lower_full_face_ratio = "N/A"
+    try:
+        lower_face_height = np.linalg.norm(np.array(nasion) - np.array(chin_bottom))
+        full_face_height = np.linalg.norm(np.array(hairline) - np.array(chin_bottom))
+        if full_face_height > 0:
+            lower_full_face_ratio = round(lower_face_height / full_face_height, 2)
+    except Exception as e:
+        print("Error calculating lower/full face ratio:", e)
 
     response = {
         'beauty_score': 0,  # placeholder
         'eye_distance': 0,  # placeholder
         'fWHR': fWHR,
         'ideal_fWHR': '1.8+',
-        ''lower_full_face_ratio': lower_full_face_ratio,
+        'lower_full_face_ratio': lower_full_face_ratio,
         'ideal_lower_full_face_ratio': '0.62+',
         'landmarks': {
             'left_cheek': left_cheek,
